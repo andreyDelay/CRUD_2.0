@@ -5,7 +5,6 @@ import com.andrey.csv.model.Customer;
 import com.andrey.csv.model.Speciality;
 import com.andrey.csv.repository.CustomerRepository;
 import com.andrey.csv.repository.ProjectRepositoryFactory;
-import com.andrey.csv.repository.SpecialityRepository;
 import com.andrey.csv.utils.ExecutionResultsForUI;
 import com.andrey.csv.view.Viewer;
 
@@ -48,13 +47,19 @@ public class CustomerController {
 
     public void deleteCustomer(long id) {
         Customer toBeDeleted = repository.delete(id);
-        if (toBeDeleted == null) {
+        AccountController controller = new AccountController(viewer, repositoryFactory);
+        Account deletedAccount = controller.deleteAccount(id);
+        if (deletedAccount == null || toBeDeleted == null) {
             viewer.showResultOfOperation(ExecutionResultsForUI.OPERATION_FAILED);
         }
         viewer.showResultOfOperation(ExecutionResultsForUI.SUCCESSFULLY_DONE);
     }
 
     public void addSpeciality(Scanner scanner, Customer currentCustomer) {
+        if (currentCustomer == null) {
+            viewer.showResultOfOperation(ExecutionResultsForUI.OPERATION_FAILED);
+            return;
+        }
         SpecialityController specialityController = new SpecialityController(viewer, repositoryFactory);
         Speciality speciality = specialityController.startCreatingSpeciality(scanner);
         currentCustomer.addSpeciality(speciality);
@@ -62,6 +67,10 @@ public class CustomerController {
     }
 
     public void deleteSpeciality(long id, Customer currentCustomer) {
+        if (currentCustomer == null) {
+            viewer.showResultOfOperation(ExecutionResultsForUI.OPERATION_FAILED);
+            return;
+        }
         SpecialityController specialityController = new SpecialityController(viewer, repositoryFactory);
         Speciality speciality = specialityController.getSpeciality(id);
         currentCustomer.removeSpeciality(speciality);
@@ -118,20 +127,16 @@ public class CustomerController {
         System.out.println("Введите возраст:");
         age = inputData.nextInt();
 
-        if (isDataForNewCustomerCorrect(accountName, name, lastName, age)) {
-            AccountController accountController = new AccountController(viewer, repositoryFactory);
-            Account account = accountController.createNewAccount(accountName);
-            return new Customer(account, name, lastName, age);
+        if (isDataForNewCustomerIncorrect(accountName, name, lastName, age)) {
+            return null;// Не хотелось возвращать null!!
         }
-        return null;            // Не хотелось возвращать null!!
+        AccountController accountController = new AccountController(viewer, repositoryFactory);
+        Account account = accountController.createNewAccount(accountName);
+        return new Customer(account, name, lastName, age);
     }
 
-    private boolean isDataForNewCustomerCorrect(String account, String name, String lastName, int age) {
-        return account.length() == 0 || age < 0 || name.length() == 0 || lastName.length() == 0;
-    }
-
-    public ProjectRepositoryFactory getRepositoryFactory() {
-        return repositoryFactory;
+    private boolean isDataForNewCustomerIncorrect(String account, String name, String lastName, int age) {
+        return (account.length() == 0 || age < 0 || name.length() == 0 || lastName.length() == 0);
     }
 
 }

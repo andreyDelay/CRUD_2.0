@@ -1,7 +1,6 @@
 package com.andrey.csv.controllers;
 
 import com.andrey.csv.controllers.concrets.CustomerController;
-import com.andrey.csv.controllers.concrets.SpecialityController;
 import com.andrey.csv.model.Customer;
 import com.andrey.csv.repository.ProjectRepositoryFactory;
 import com.andrey.csv.utils.ExecutionResultsForUI;
@@ -68,6 +67,7 @@ public class FrontController {
                     showSecondaryMenu();
                     break;
                 case 6:
+                    System.out.println("Введите id:");
                     long id = askUserInputID(ExecutionResultsForUI.INCORRECT_ID);
                     customerController.deleteSpeciality(id, currentCustomer);
                     showSecondaryMenu();

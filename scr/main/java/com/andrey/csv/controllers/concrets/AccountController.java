@@ -25,7 +25,6 @@ public class AccountController {
             viewer.showResultOfOperation(ExecutionResultsForUI.ACCOUNT_EXISTS);
             return account;
         }
-        viewer.showResultOfOperation(ExecutionResultsForUI.SUCCESSFULLY_DONE);
         return repository.save(account);
     }
 
@@ -46,9 +45,6 @@ public class AccountController {
 
     public Account deleteAccount(Long id) {
         Account account = repository.delete(id);
-        if (account == null) {
-            viewer.showResultOfOperation(ExecutionResultsForUI.OPERATION_FAILED);
-        }
         return account;
     }
 

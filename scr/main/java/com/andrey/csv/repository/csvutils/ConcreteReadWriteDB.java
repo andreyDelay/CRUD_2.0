@@ -22,12 +22,19 @@ import java.util.stream.Collectors;
 public class ConcreteReadWriteDB implements ReadWriteDataBase {
     private char csvDelimiter = ';';
     List<String> projectHeaders;
+    //получает значение в единственном методе getProperCSVFormatAndCheckHeaders()
     private boolean needToRewriteProjectHeaders;
 
     public ConcreteReadWriteDB(List<String> projectHeaders) {
         this.projectHeaders = projectHeaders;
     }
 
+
+    /*
+    Тут была попытка реализовать перезапись заголовков, если они вдруг были удалены или несоответствуют новым
+    не несёт никакой особой функциональности, но данные в файле удаляются в методе createCSVPrinterForNewFile()
+    из-за опции StandardOpenOption.TRUNCATE_EXISTING.
+     */
     public boolean writeData(List<String> records, Path path) {
         try(CSVPrinter printer = getCSVPrinter(path, records)) {
             if (needToRewriteProjectHeaders) {
@@ -69,7 +76,8 @@ public class ConcreteReadWriteDB implements ReadWriteDataBase {
     private boolean isHeadersCorrect(Path path) {
         boolean result = true;
         try (CSVParser parser = getCSVParserWithHeaders(path)) {
-            String headerRow = parser.getHeaderNames().get(0);
+            String headerRow = parser.getHeaderNames().stream()
+                                .collect(Collectors.joining(String.valueOf(csvDelimiter)));
             List<String> headersFromCSVFile = Arrays.stream(
                     headerRow.split(String.valueOf(csvDelimiter)))
                     .collect(Collectors.toList());
@@ -113,7 +121,7 @@ public class ConcreteReadWriteDB implements ReadWriteDataBase {
                     oneRow.setLength(0);
                 }
         } catch (IOException e) {
-            System.out.println("База данных не найдена!");
+            System.out.println("Будет создана новая БД для " + path.getName(0));
         }
         return rowsFromCsvFile;
     }
@@ -132,7 +140,7 @@ public class ConcreteReadWriteDB implements ReadWriteDataBase {
         List<String> rows = readData(sourceFile);
         Optional<Long> incrementedID = rows.stream()
                 .map(row -> row.split(String.valueOf(csvDelimiter)))
-                .filter(array -> !array[0].equalsIgnoreCase("id"))
+                .skip(1)//skip header
                 .map(array -> array[0])
                 .map(Long::parseLong)
                 .max(Long::compareTo);
